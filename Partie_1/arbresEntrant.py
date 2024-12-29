@@ -203,3 +203,4 @@ def ordonnancementArbre(arbre: ArbreEntrant):
     res.append(node)
 
     return res
+

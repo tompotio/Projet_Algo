@@ -1,5 +1,4 @@
 from arbresEntrant import ArbreEntrant
-
 class Node:
     def __init__(self,weight,label):
         self.weight = weight
@@ -7,14 +6,12 @@ class Node:
         self.label = label
         self.linkCost = None
         self.enfant = []
-
 class terminaisonNode:
      def __init__(self,weight,label):
           self.enfant = []
           self.parent = []
           self.weight = weight
           self.label = label
-
 class forkJoin:
     def __init__(self,weightStart,weightEnd):
        self.start = terminaisonNode(weightStart,"s")
@@ -75,26 +72,34 @@ class forkJoin:
                    cut = True
               else:
                 self.chain[i]["linkcost"]-=self.chain[i]["linkCostMin"]["minValue"]
-                self.chain[i]["node"].parent["linkcost"]-=self.chain[i]["linkCostMin"]["minValue"]
+                self.chain[i]["node"].parent["cost"]-=self.chain[i]["linkCostMin"]["minValue"]
               current = self.chain[i]["node"]
               last = None
               while current.enfant != []:
-                   last = current
+                   last = {"node" : current,"cost" : current.linkCost}
                    current.weight+= self.chain[i]["linkCostMin"]["minValue"]
                    if cut:
                             current.linkCost-=self.chain[i]["linkCostMin"]["minValue"]
-                            current.enfant[0].parent["linkcost"]-=self.chain[i]["linkCostMin"]["minValue"]
+                            current.enfant[0].parent["cost"]-=self.chain[i]["linkCostMin"]["minValue"]
                             tmp = current.enfant.pop()
-                            tpm.parent.push(current)
-                            current = tpm
+                            current.parent = ({"node":tpm,"cost":current.linkcost})
+                            current = tmp
                    else:
                         if current == self.chain[i]["linkCostMin"]["node"]:
                              cut = True
                         else:
                           current.linkCost-=self.chain[i]["linkCostMin"]["minValue"]
-                          current.enfant[0].parent["linkcost"]-=self.chain[i]["linkCostMin"]["minValue"]  
-                          current = current.enfant[0] 
-
+                          current.enfant[0].parent["cost"]-=self.chain[i]["linkCostMin"]["minValue"]  
+                        current = current.enfant[0] 
+              self.end.parent.remove(last)
+              self.end.enfant.append(last["node"])
+              self.chain[i]["node"].enfant.pop()
+         arbreStart = ArbreEntrant(self.start)
+         arbreEnd = ArbreEntrant(self.end)
+         ordonnancementStart = ordonnancementArbre(arbreStart)
+         ordonnancementEnd = ordonnancementArbre(arbreEnd)
+         return ordonnancementStart.reverse().extend(ordonnancementEnd)                   
+    
 fk = forkJoin(20,12)
 a = Node(10,"a")
 c = Node(0,"c")
