@@ -103,7 +103,7 @@ class forkJoin:
                             current.linkCost-=self.chain[i]["linkCostMin"]["minValue"]
                             current.enfant[0].parent["cost"]-=self.chain[i]["linkCostMin"]["minValue"]
                             tmp = current.enfant.pop()
-                            current.parent = ({"node":tpm,"cost":current.linkcost})
+                            current.parent = ({"node":tmp,"cost":current.linkcost})
                             current = tmp
                    else:
                         if current == self.chain[i]["linkCostMin"]["node"]:
