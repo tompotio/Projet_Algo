@@ -47,6 +47,15 @@ class ArbreEntrant:
         
         return taille
 
+    def printTree(self):
+        print("label:",self.first.label,"weigth",self.first.weight)
+        enfants = self.first.enfant.copy()
+       
+        while enfants != []:
+            enfant = enfants.pop()
+            print(enfant.label,enfant.parent["cost"],enfant.weight,enfant.parent["node"].label)
+            enfants.extend(enfant.enfant)
+
 # =====================================================
 #                   CALCUL DES COUTS
 # =====================================================
@@ -63,7 +72,10 @@ def checkOrdonnancement(arbre : ArbreEntrant, ordonnancement : list):
     for i in range(len(ordonnancement)):
         for o2 in ordonnancement[i + 1:]:
             same = ordonnancement[i] == o2
-            parent = ordonnancement[i] == o2.parent["node"]
+            parent = False
+            
+            if (o2.parent["node"] != None):
+                parent = ordonnancement[i] == o2.parent["node"]
 
             if same or parent:
                 print("incorrect")
