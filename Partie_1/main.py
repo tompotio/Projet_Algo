@@ -1,11 +1,15 @@
 #from arbresEntrant import *
-from forkjoin import *
+#from forkjoin import *
+from parallel import *
 
 # =====================================================
 #                      PROGRAMME
 # =====================================================
 
 '''
+
+#Test pour arbresEntrant 
+
 a = Node(4,"a")
 b = Node(3,"b")
 c = Node(1,"c")
@@ -34,6 +38,10 @@ print([node.label for node in ordonnancementOptimal])
 print(coutOrdonnancement(tree,ordonnancement))
 '''
 
+'''
+
+#Test pour forkJoin
+
 forkTest = forkJoin(2, 8)
 
 c1_1 = Node(3, "c1_1")
@@ -61,4 +69,26 @@ forkTest.add_node(2, c3_3, 6)
 minChain = forkTest.minChain()
 
 print([node.label for node in forkTest.ordonnancementForkJoin()])
+'''
 
+# Tests pour Série parallèle
+
+# Création des bases
+base1 = SP_Base(2, 8, 4)
+base2 = SP_Base(5, 9, 3)
+
+# Composition en série
+serie = SP_Serie(base1, base2)
+ordonnancement = serie.ordonnancement()
+
+print("Ordonnancement optimal :", [node.label for node in ordonnancement])
+
+'''
+# Composition en parallèle
+parallel = SP_Parallel(base1, base2)
+
+complexe = SP_Serie(serie, parallel)
+ordonnancement = ordonnancementSerieParallele(complexe)
+
+print("Ordonnancement optimal :", [node.label for node in ordonnancement])
+'''

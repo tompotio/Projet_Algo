@@ -1,7 +1,7 @@
 from arbresEntrant import ArbreEntrant,ordonnancementArbre
 
 class Node:
-     def __init__(self,weight,label):
+     def __init__(self, weight, label):
           self.weight = weight
           self.parent = {"node" : None, "cost" : 0}
           self.label = label
@@ -9,19 +9,19 @@ class Node:
           self.enfant = []
 
 class terminaisonNode:
-     def __init__(self,weight,label):
+     def __init__(self, weight, label):
           self.enfant = []
           self.parent = []
           self.weight = weight
           self.label = label
 
 class forkJoin:
-     def __init__(self,weightStart,weightEnd):
+     def __init__(self, weightStart, weightEnd):
           self.start = terminaisonNode(weightStart,"s")
           self.end = terminaisonNode(weightEnd,"t")
           self.chain = []
 
-     def start_chain(self,node,linkCostTo,linkCostFrom):    
+     def start_chain(self, node, linkCostTo, linkCostFrom):    
           self.start.enfant.append(node)
           minNode = None
           minValue = None
@@ -31,7 +31,7 @@ class forkJoin:
                minValue = linkCostTo
           else:
                minNode = node
-               
+
           self.chain.append({"node":node,"linkCost":linkCostTo,"linkCostMin":{"node":minNode,"value":min(linkCostTo,linkCostFrom)}})
 
           node.parent["node"] = self.start
@@ -39,7 +39,7 @@ class forkJoin:
           node.enfant.append(self.end)
           node.linkCost = linkCostFrom
 
-          self.end.parent.append({"node" : node,"cost" : linkCostFrom})
+          self.end.parent.append({"node" : node, "cost" : linkCostFrom})
 
      def add_node(self, chainIndex, node, linkCostFrom):
           current = self.chain[chainIndex]["node"]
@@ -83,6 +83,21 @@ class forkJoin:
           nodeLabel.append({"label":current.label,"linkCost":0})
 
           return nodeLabel
+
+     '''
+          Ajoute une chaîne complète au forkJoin.
+     '''
+     def add_chain(self, chain, linkCostTo):
+          # la chaîne en paramètre contiendra que les éléments après start et avant target
+          chainIndex = self.nbChain()
+
+          # On crée la nouvelle chaîne
+          self.start_chain(chain[0], linkCostTo, chain[0].linkCost)
+
+          # On itère chaque maillon et on les ajoute à la nouvelle chaîne
+          for i in range(1, len(chain)):
+               linkCostFrom = chain[i].parent["cost"]
+               self.add_node(chainIndex, chain[i], linkCostFrom)
 
      def ordonnancementForkJoin(self):
           # Itère sur chaque chaîne de l'arbre

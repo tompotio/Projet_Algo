@@ -1,71 +1,27 @@
 from forkjoin import *
 
 '''
-    Observations : 
-        + Dans l'exemple "composition", il n'y a aucune différence entre t1 et s2. ✅
-            Il faut imaginer que la Composition de G1 et G2 est une série parallèle qui s'est concaténée unifiant t1 et s2.
-
-        + J'ai l'impression que pour crée un graphe en série parallèle, il faut toujours donner un s et un t. C'est également le cas de base. ❌
-
-    Réflexions : 
-        + Pour la composition en série entre G1 et G2 : 
-            - Est-ce que s1 c'est le s de G1 ou un s en plus ?
-            réponse : le s1 est directement celui de G1
-
-            - De la même façon est-ce que le t2 est le t de G2 ?
-            réponse : le t2 est directement celui de t2
-
-        + Quels poids choisir lors de la fusion des sommets ? Par exemple lors d'une composition en série.
-            réponse : Choisir un des deux, vu que le poids des extrémités n'a aucune importante lors de l'ordonnancement final.
-
-        + Lors d'une composition parallèle de deux séries parallèle basique, quelles fusions sont possibles ? 
-            réponse :
-                Avant fusion :         Après fusion :
-                s1 -> t1               s -> t
-                s2 -> t2
-
-            (En gros l'idée c'est que l'on perd les sommets en de nouveaux sommets, donc on s'en fiche des labels précédents)
-
-    Brainstorming : 
-
-        Constructeur de graphe en série parallèle ✅
-            SP(s : terminaisonNode, t : terminaisonNode) : Crée un graphe série parallèle (j'ai pas mis toutes les infos, c'est une juste une rep à l'arrache)
-
-        Fonction qui renvoie une composition en série de G1 et G2 (une série parallèle) ❌
-            serie(G1 : SP, G2 : SP) : 
-
-        Fonction qui renvoie une composition en parallèle de G1 et G2 ❌
-            parallele(G1 : SP, G2 : SP)
-
-
-        Mieux vaut faire un constructeur qui se charge des trois cas. ❌
-
-        Pour le calcul de l'ordonnancement des sous-graphe : 
-            1. S'il s'agit d'un cas de base ou en série, il suffit de retourner la liste du parcours des sommets du graphe.
-            2. S'il s'agit d'une série en parallèle, il faut d'abord faire l'étape 1, ensuite linéairiser en créant des chaînes. Puis on calcule l'ordonnancement optimal du fork join associé.
-            3. On continue récursivement s'il y a des imbrications de merde.
-
-        Etape quand je retourne l'ordonnancement du forkjoin
-
-        1. Je crée mes chaînes (linéarisation)
-        2. Je crée mon forkJoin
-        3. Je récupère l'ordonnancement
-        4. Je modifie les noeuds de terminaison par des noeuds normaux
-        5. Je retourne l'ordonnancement modifié
-
+    Classe abstraite de base pour un graphe Série Parallèle.
 '''
-
 class SPGraph:
     '''
-        Classe abstraite de base pour un graphe Série Parallèle.
-        :param source : Noeud source.
-        :param target : Noeud cible.
+        Constructeur pour les séries parallèle.
+        :param source : Poids du noeud source OU un noeud source.
+        :param target : Poids du noud target OU un noeud target.
+        :param edge_weight : Poids de l'arête entre les deux nœuds (facultatif).
     '''
-    def __init__(self, source =  None, target = None, label = ""):
-        self.source = source
-        self.target = target
-        self.label = label
+    def __init__(self, source, target, edge_weight = None):
+        if edge_weight is not None:
+            self.source = terminaisonNode(source, "s")
+            self.target = terminaisonNode(target, "t") 
+            self.edge_weight = edge_weight
+        else:
+            self.source = source
+            self.target = target
 
+    '''
+        Définition de la fonction de calcul du meilleur ordonnancement à override dans chaque classe.
+    '''
     def ordonnancement(self): 
         pass
 
@@ -88,6 +44,14 @@ class SPGraph:
 
         return fusionNode
 
+    def plugSource(self, newSource, parents):
+        for parent in parents:
+            parent.enfant[0] = newSource
+
+    def plugTarget(self, newTarget, enfants):
+        for enfant in enfants: 
+            enfant.parent["node"] = newTarget
+
     def getType(self):
         return ""
 
@@ -98,12 +62,11 @@ class SP_Base(SPGraph):
         :param target : Noeud cible.
         :param weight : Poids de l'arête.
     '''
-    def __init__(self, source = None, target = None, weight = None):
-        super().__init__(source, target)
-        self.weight = weight
+    def __init__(self, sourceWeight, targetWeight, edge_weight):
+        super().__init__(sourceWeight, targetWeight, edge_weight)
 
-    def ordonnancement(self): 
-        return [self.source, self.target]
+    def ordonnancement(self):
+        return []
 
     def getType(self):
         return "SP_Base"
@@ -119,22 +82,31 @@ class SP_Serie(SPGraph):
 
         # On fusionne t1 à s2
         fusedNode = self.fuseNode(G1.target, G2.source)
+
+        # On plug le nouveau node avec les anciens parents et enfants
+        fusedNode.parent = G1.target.parent
+        fusedNode.enfant = G2.source.enfant
+
+        # On plug les parents de la source de G2 au nouveau noeud
+        self.plugSource(fusedNode, G2.source.parent)
+
+        # On plug les enfants de la target de G1 au nouveau noeud
+        self.plugTarget(fusedNode, G1.target.enfant)
+
         G1.target = fusedNode
         G2.source = fusedNode
-
-        # On plug le nouveau node
-        fusedNode.parent = G2.source.parent
-        fusedNode.enfant[0] = G1.source.enfant[0]
 
         self.G1 = G1
         self.G2 = G2
 
     def ordonnancement(self):
-        G1_Ordo = G1.ordonnancement()
-        G2_Ordo = G2.ordonnancement()
+        G1_Ordo = self.G1.ordonnancement()
+        G2_Ordo = self.G2.ordonnancement()
 
         # On retire le premier élément de G2_Ordo qui est commun avec G1_Ordo (dernier élément de celui-ci)
         G2_Ordo_sans_premier = G2_Ordo[1:]
+        
+        G2_Ordo_sans_premier.append(self.target)
 
         # Concatène les deux listes
         return G1_Ordo + G2_Ordo_sans_premier
@@ -148,27 +120,30 @@ class SP_Parallel(SPGraph):
         :param G1 : Premier sous-graphe.
         :param G2 : Deuxième sous-graphe.
     '''
-    def __init__(self, G1, G2):
-        # Crée une nouvelle source et une nouvelle cible
-        
+    def __init__(self, G1, G2):        
         # On fusionne s1 et s2
-        fusedSources = self.fuseNode(G1.src, G2.src)
+        fusedSources = self.fuseNode(G1.source, G2.source)
 
         # On fusionne t1 et t2
         fusedTarget = self.fuseNode(G1.target, G2.target)
 
-        '''
-        Je traiterai les cas de base avec n'importe quoi après...
-        # Si G1 et G2 sont des cas de base
-        if G1.getType() == G2.getType(): 
-            src1_cost = G1.src.parent["cost"]  
-            src2_cost = G2.src.parent["cost"]
-            fusedSources.parent["cost"] = src1_cost + src2_cost
-        '''
+        # On plug nos nouveaux noeuds avec les anciens enfants et parents
+        fusedSources.parent = G1.source.parent
+        fusedSources.parent.extend(G2.source.parent)
+        fusedTarget.enfant = G1.target.enfant
+        fusedSources.enfant.extend(G2.target.enfant)
 
-        # Si 
-        if G1.getType() != "SP_Base" and G2.getType() != "SP_Base" : 
-            fusedSources.parent = 
+        # On le fait également pour les enfants et les parents dans l'autre sens (liste doublement chaînée)
+        self.plugSource(fusedSources, G1.target.parent)
+        self.plugSource(fusedSources, G2.target.parent)
+        self.plugTarget(fusedSources, G1.source.enfant)
+        self.plugTarget(fusedSources, G2.source.enfant)
+
+        # Si on est sur une composition en parallèle de deux case de base, on fusionne également l'arête
+        if (G1.getType() == "SP_Base" and G2.getType() == "SP_Base"):
+            G1_edge_weight = G1.edge_weight
+            G2_edge_weight = G2.edge_weight
+            fusedSources.edge_weight = G1_edge_weight + G2_edge_weight
 
         super().__init__(fusedSources, fusedTarget)
 
@@ -177,7 +152,22 @@ class SP_Parallel(SPGraph):
         self.G2 = G2
 
     def ordonnancement(self):
-        pass
+        fork_join = forkJoin(self.source.weight, self.target.weight)
+
+        # On récupère les ordonnancements de nos sous-graphes
+        G1_ordo = self.G1.ordonnancement()
+        G2_ordo = self.G2.ordonnancement()
+
+        # On construit les chaînes de nos sous-graphes
+        G1_chaine = lineariser(self.G1, G1_ordo)
+        G2_chaine = lineariser(self.G2, G2_ordo)
+
+        # Ajout les chaînes respectives à notre forkJoin
+        fork_join.add_chain(G1_chaine, self.G1.edge_weight)
+        fork_join.add_chain(G2_chaine, self.G2.edge_weight)
+
+        # Renvoie l'ordonnancement optimal
+        return fork_join.ordonnancementForkJoin()
 
     def getType(self):
         return "SP_Parallel"
@@ -185,11 +175,19 @@ class SP_Parallel(SPGraph):
 '''
     Transforme le graphe en chaîne en respectant l'ordonnancement optimal passé en paramètre.
 '''
-def lineariser(graphe : SP, ordonnancement : list):
-    return
+def lineariser(graphe : SPGraph, ordonnancement : list) :
+    chaine = []
+
+    # Rajoute à la chaîne chaque node dans l'ordre de l'ordonnancement
+    for node in ordonnancement:
+        chaine.append(node)
+
+    # Restera plus qu'à adapter les pondérations
+
+    return chaine
 
 '''
     Prend en entrée un graphe série parallèle et retourne un ordonnancement minimisant le coût d'exécution
 '''
-def ordonnancementSerieParallele(graphe : SP)
+def ordonnancementSerieParallele(graphe : SPGraph):
     return graphe.ordonnancement()
