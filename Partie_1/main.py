@@ -74,14 +74,19 @@ print([node.label for node in forkTest.ordonnancementForkJoin()])
 # Tests pour Série parallèle
 
 # Création des bases
-base1 = SP_Base(2, 8, 4)
-base2 = SP_Base(5, 9, 3)
+base1 = SP_Base(1,1,"a","b",1)
+base2 = SP_Base(1,1,"c","d",1)
+base3 = SP_Base(1,1,"a1","b1",1)
+base4 = SP_Base(1,1,"c1","d1",1)
 
 # Composition en série
 serie = SP_Serie(base1, base2)
-ordonnancement = serie.ordonnancement()
+serie.print_SP()
+#serie2 = SP_Serie(base3, base4)
+#serie3 = SP_Serie(serie, serie2)
 
-print("Ordonnancement optimal :", [node.label for node in ordonnancement])
+#ordonnancement = serie3.ordonnancement()
+#print("Ordonnancement optimal :", [node.label for node in ordonnancement])
 
 '''
 # Composition en parallèle
