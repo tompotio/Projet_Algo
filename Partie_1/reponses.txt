@@ -2,19 +2,88 @@
                                                   FICHIER RÉPONSES
 =======================================================================================================================
 
-1.
+1.[ a, c,b,e,d,f,g,h]
 
-2. 
+2. le probleme de décision est le suivant : Existe-t-il un ordonnancement valide PI avec un coût C, afin de montrer son appartenance à NP on va définir un certificat qui sera le suivant : un tableau à une dimension avec les noeuds et le cout associé, on parcours ce tableau est en retire on vérifieras que le parent d'un des noeuds suivants le noeud actuelle n'est pas le noeud actuelle la complexité O(n²)
 
-3. 
+3. class Node:
+    def __init__(self,weight,label):
+        self.weight = weight
+        self.parent = {"node" : None,"cost" : 0}
+        self.label = label
+        self.enfant = []
 
-4. 
+    def add_parent(self,node,cost):
+       if self.parent["node"] != None:
+           self.parent["node"].enfant.remove(self)
+       self.parent["node"] = node
+       self.parent["cost"] = cost
+       self.parent["node"].enfant.append(self) 
 
-5. 
+class ArbreEntrant:
+    def __init__(self, first, root = []):
+        self.root = root
+        self.first = first
+        self.taille = None
 
-6. 
+    def size(self):
+        
+        if(self.taille != None):
+            return self.taille
 
-7. 
+        
+        enfants = self.first.enfant.copy()
+       
+        taille = 1
+        
+        while enfants != []:
+            enfant = enfants.pop()
+            enfants.extend(enfant.enfant)
+            taille += 1
+
+        self.taille = taille
+        
+        return taille
+
+la classe noeud défini un noeud qui connait son parent et ses enfants:
+    add_parent() est la fonction qui definit le parent et ajoute le noeud en tant qu'enfant de son parent, comme il s'agit seulement d'affectation cette fonction est en O(1)
+la classe ArbreEntrant connait les extremités de l'arbres
+
+4. l'algorithme coutOrdonnancement est en O(n²) avec n la taille de l'ordonnancement car afin de vérifier que l'ordonnancement est valide, il est nécessaire de faire un double parcours de l'ordonnancement ensuite va juste 
+
+5. l'algorithme segment est en O(n) car nous parcourons chaque noeud de l'ordonnancement . commande : python coutOrdonnancementTest.py
+
+6. séparons chaque complexité 
+ la boucle for se réduit à  ∑f(ni)
+ le tri par sort se réduit à n log t
+ l'ajout se réduit à n 
+ donc l'algorithme est sous la forme n log t + n + ∑f(ni) donc il est O(n²)
+ commande : python ordonnancementArbre.py
+
+7. class Node:
+     def __init__(self,weight,label):
+          self.weight = weight
+          self.parent = {"node" : None, "cost" : 0}
+          self.label = label
+          self.linkCost = None
+          self.enfant = []
+
+class terminaisonNode:
+     def __init__(self,weight,label):
+          self.enfant = []
+          self.parent = []
+          self.weight = weight
+          self.label = label
+
+class forkJoin:
+     def __init__(self,weightStart,weightEnd):
+          self.start = terminaisonNode(weightStart,"s")
+          self.end = terminaisonNode(weightEnd,"t")
+          self.chain = []
+la class forkJoin connait ses deux terminaisons  
+start_chain(self,node,linkCostTo,linkCostFrom) permet d'initialiser une chaine il y a seulement des affectation donc O(1)
+add_node(self, chainIndex, node, linkCostFrom) permet d'ajouter un noeud à une chaine il faut parcourir la chaine donc k ou k est la taille de la chaine ou O(n) dans le cas ou il existe qu'une chaine
+
 
 8. 
 

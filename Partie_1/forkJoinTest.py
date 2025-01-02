@@ -1,16 +1,11 @@
 #from arbresEntrant import *
-
 from forkjoin import *
-#from parallel import *
 
 # =====================================================
 #                      PROGRAMME
 # =====================================================
 
 '''
-
-#Test pour arbresEntrant 
-
 a = Node(4,"a")
 b = Node(3,"b")
 c = Node(1,"c")
@@ -39,8 +34,6 @@ print([node.label for node in ordonnancementOptimal])
 print(coutOrdonnancement(tree,ordonnancement))
 '''
 
-#Test pour forkJoin
-
 forkTest = forkJoin(2, 8)
 
 c1_1 = Node(3, "c1_1")
@@ -67,27 +60,5 @@ forkTest.add_node(2, c3_2, 6)
 forkTest.add_node(2, c3_3, 6)
 minChain = forkTest.minChain()
 
-print([node.label for node in forkTest.ordonnancementForkJoin()])
+print("l'ordonnancement de l'arbre fork join est : ", [node.label for node in forkTest.ordonnancementForkJoin()])
 
-'''
-
-forkJoin = forkJoin(1,1)
-
-u = Node(1,"u")
-
-a = Node(1, "a")
-
-b = Node(1,"b")
-b.linkCost = 1
-
-c = Node(1,"c")
-c.linkCost = 1
-
-chain = [a, b, c]
-
-forkJoin.start_chain(u, 1, 1)
-
-forkJoin.add_chain(chain, 1, 1)
-
-print([info for info in forkJoin.print_chain(1)])
-'''

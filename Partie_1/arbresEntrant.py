@@ -12,6 +12,8 @@ class Node:
         self.enfant = []
 
     def add_parent(self,node,cost):
+       if self.parent["node"] != None:
+           self.parent["node"].enfant.remove(self)
        self.parent["node"] = node
        self.parent["cost"] = cost
        self.parent["node"].enfant.append(self) 
@@ -21,12 +23,6 @@ class ArbreEntrant:
         self.root = root
         self.first = first
         self.taille = None
-        
-    def add_root(self, node):
-        self.root.append(node)
-
-    def set_root(self, first):
-        self.first = first
 
     def size(self):
         
@@ -47,14 +43,6 @@ class ArbreEntrant:
         
         return taille
 
-    def printTree(self):
-        print("label:",self.first.label,"weigth",self.first.weight)
-        enfants = self.first.enfant.copy()
-       
-        while enfants != []:
-            enfant = enfants.pop()
-            print(enfant.label,enfant.parent["cost"],enfant.weight,enfant.parent["node"].label)
-            enfants.extend(enfant.enfant)
 
 # =====================================================
 #                   CALCUL DES COUTS
@@ -125,38 +113,7 @@ def coutOrdonnancement(arbre : ArbreEntrant, ordonnancement : list):
 
     return max
 
-def segment(arbre : ArbreEntrant, ordonnancement: list):
-    costs = []
-    segment = []
-    available = set()
 
-    valide = checkOrdonnancement(arbre, ordonnancement)
-    coutExecution = 0
-
-    if valide == -1:
-        return valide
-    
-    # Calcul par étape de l'algo
-    while len(ordonnancement) > 0:
-        o = ordonnancement.pop(0)
-
-        # Récupère les différents coûts
-        ws = o.weight
-        costUnused = sum([x.parent["cost"] for x in available])
-        productCost = o.parent["cost"]
-        
-        available.add(o)
-
-        for child in o.enfant :
-            available.remove(child)
-
-        coutResiduel = sum([x.parent["cost"] for x in available])
-
-        # Fait l'addition
-        cost = ws + costUnused + productCost
-        coutExecution = max(cost,coutExecution)
-        # Ajoute le coût du node courant dans la liste
-        costs.append({"node" : o, "cost" : cost, "residual" : coutResiduel})
         
     # Initialise le premier segment
     segment.append({"node" : [], "h" : -math.inf, "v" : math.inf})
