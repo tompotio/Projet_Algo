@@ -113,8 +113,34 @@ def coutOrdonnancement(arbre : ArbreEntrant, ordonnancement : list):
 
     return max
 
-
+def segment(arbre : ArbreEntrant, ordonnancement: list):
+    costs = []
+    segment = []
+    available = set()
+    valide = checkOrdonnancement(arbre, ordonnancement)
+    coutExecution = 0
+    if valide == -1:
+        return valide
+    
+    # Calcul par étape de l'algo
+    while len(ordonnancement) > 0:
+        o = ordonnancement.pop(0)
+        # Récupère les différents coûts
+        ws = o.weight
+        costUnused = sum([x.parent["cost"] for x in available])
+        productCost = o.parent["cost"]
         
+        available.add(o)
+        for child in o.enfant :
+            available.remove(child)
+
+        coutResiduel = sum([x.parent["cost"] for x in available])
+        # Fait l'addition
+        cost = ws + costUnused + productCost
+        coutExecution = max(cost,coutExecution)
+        # Ajoute le coût du node courant dans la liste
+        costs.append({"node" : o, "cost" : cost, "residual" : coutResiduel})
+
     # Initialise le premier segment
     segment.append({"node" : [], "h" : -math.inf, "v" : math.inf})
 

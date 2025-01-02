@@ -1,3 +1,5 @@
+from parallel import *
+
 '''
 # Exemple 1
 # Création des bases
