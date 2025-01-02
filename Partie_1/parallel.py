@@ -257,13 +257,13 @@ class SP_Parallel(SPGraph):
         G2_ordo = self.G2.ordonnancement()
 
         # On construit les chaînes de nos sous-graphes
-        G1_chaine = lineariser(self.G1, G1_ordo[1:-1])
-        G2_chaine = lineariser(self.G2, G2_ordo[1:-1])
+        G1_chaine = lineariser(self, G1_ordo)
+        G2_chaine = lineariser(self, G2_ordo)
 
         # Ajoute les chaînes respectives à notre forkJoin 
         # (On peut récupérer "cost" car on est sûr qu'après la linéarisation les noeuds de la chaîne ne sont pas des terminaisons)
-        fork_join.add_chain(G1_chaine, G1_chaine[0].parent["cost"])
-        fork_join.add_chain(G2_chaine, G2_chaine[0].parent["cost"])
+        fork_join.add_chain(G1_chaine, G1_chaine[0].parent["cost"], G1_chaine[0].linkCost)
+        fork_join.add_chain(G2_chaine, G2_chaine[0].parent["cost"], G2_chaine[0].linkCost)
 
         # Renvoie l'ordonnancement optimal
         return fork_join.ordonnancementForkJoin()
@@ -271,22 +271,58 @@ class SP_Parallel(SPGraph):
     def getType(self):
         return "SP_Parallel"
 
+def unplugNodes(nodes : list):
+    for node in nodes: 
+        node.enfant = []
+
 '''
     Transforme le graphe en chaîne en respectant l'ordonnancement optimal passé en paramètre.
 '''
 def lineariser(graphe : SPGraph, ordonnancement : list):
+    #print("On va linéariser l'ordonnancement :", [node.label for node in ordonnancement])
+
+    source = ordonnancement.pop(0)
+    target = ordonnancement.pop(-1)
+
+    if ordonnancement[1].getType() == "Node":
+        unplugNodes(ordonnancement)
+        return ordonnancement
 
     chaine = []
+    lastEnfant = source
+
+    registry = WeightRegistry()
 
     # Rajoute à la chaîne chaque node dans l'ordre de l'ordonnancement
-    for i in range(0, len(ordonnancement) - 1):
+    for i in range(0, len(ordonnancement)):
         current = ordonnancement[i]
 
-        if current.parent[0] != ordonnancement[i + 1]:
-            pass
+        newEnfant = Node(current.weight, current.label)
+        linkCostTo = 0
 
-    # Restera plus qu'à adapter les pondérations
+        if i == 0: 
+            linkCostTo = registry.get_weight(source, current)
+        else:
+            linkCostTo = registry.get_weight(ordonnancement[i - 1], current)
 
+        if linkCostTo == None:
+            linkCostTo = 0
+
+            for parent in current.parent:
+                if parent != ordonnancement[i + 1]:
+                    edge_cost = registry.get_weight(current, parent)
+                    linkCostTo += edge_cost
+                    newEnfant.weight -= (linkCostTo - registry.get_weight(current, ordonnancement[i + 1]))
+        
+        newEnfant.linkCost = linkCostTo
+
+        if i == len(ordonnancement) - 1:
+            newEnfant.linkCostFrom = registry.get_weight(current, target)
+        else:
+            newEnfant.linkCostFrom = registry.get_weight(current, ordonnancement[i+1])
+
+        chaine.append(newEnfant)
+            
     return chaine
 
 '''
@@ -318,10 +354,12 @@ print("Ordonnancement optimal :", [node.label for node in ordonnancement])
 
 '''
 Ordonnancement optimal pour l'exemple qui suit quand il s'agit d'un forkJoin :
-    ['s', 'c2_1', 'c1_1', 'c2_2', 'c3_1', 'c3_2', 'c2_3', 'c1_2', 'c1_3', 'c3_3', 't']
+    ['s', 'c1_1', 'c2_1', 'c2_2', 'c3_1', 'c3_2', 'c2_3', 'c1_2', 'c1_3', 'c3_3', 't']
 
 (On doit normalement trouver la même chose avec nos SP)
 '''
+
+solution = ['s', 'c1_1', 'c2_1', 'c2_2', 'c3_1', 'c3_2', 'c2_3', 'c1_2', 'c1_3', 'c3_3', 't']
 
 # Création de la première chaîne
 base1 = SP_Base(1,2,"s","x",4)
@@ -369,6 +407,24 @@ ordonnancement = chaine3.ordonnancement()
 para1 = SP_Parallel(chaine1, chaine2, "s", "t")
 
 para2 = SP_Parallel(para1, chaine3, "s", "t")
+
+print()
 para2.print_SP()
 
-print([str(weight) for weight in chaine3.registry.list_weights().values()])
+#print([str(weight) for weight in chaine3.registry.list_weights().values()])
+
+ordonnancement = para2.ordonnancement()
+
+print("\nOrdonnancement optimal :", [node.label for node in ordonnancement])
+print("Ordonnancement attendu :", solution)
+
+echec = False
+for i in range(len(ordonnancement)):
+    if not (ordonnancement[i].label == solution[i]):
+        echec = True
+        break
+
+if echec:
+    print("\nEchec")
+else:
+    print("\nSucces")

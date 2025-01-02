@@ -8,12 +8,18 @@ class Node:
           self.linkCost = None
           self.enfant = []
 
+     def getType(self):
+          return "Node"
+
 class terminaisonNode:
      def __init__(self, weight, label):
           self.enfant = []
           self.parent = []
           self.weight = weight
           self.label = label
+
+     def getType(self):
+          return "terminaisonNode"
 
 class forkJoin:
      def __init__(self, weightStart, weightEnd):
@@ -44,9 +50,12 @@ class forkJoin:
      def add_node(self, chainIndex, node, linkCostFrom):
           current = self.chain[chainIndex]["node"]
 
-          while current.enfant[0] != self.end:
+          while current.enfant and current.enfant[0] != self.end:
                current = current.enfant[0]
-               
+
+          if self.end not in current.enfant:
+               print("not in ", current.label)
+          
           current.enfant.remove(self.end)
 
           self.end.parent.remove({"node" : current,"cost" : current.linkCost})
@@ -81,23 +90,22 @@ class forkJoin:
                current = current.enfant[0]
 
           nodeLabel.append({"label":current.label,"linkCost":0})
-
+ 
           return nodeLabel
 
      '''
           Ajoute une chaîne complète au forkJoin.
      '''
-     def add_chain(self, chain, linkCostTo):
-          # la chaîne en paramètre contiendra que les éléments après start et avant target
+     def add_chain(self, chain, linkCostTo, linkCostFrom):
           chainIndex = self.nbChain()
 
           # On crée la nouvelle chaîne
-          self.start_chain(chain[0], linkCostTo, chain[0].linkCost)
+          self.start_chain(chain[0], linkCostTo, linkCostFrom)
 
           # On itère chaque maillon et on les ajoute à la nouvelle chaîne
           for i in range(1, len(chain)):
-               linkCostFrom = chain[i].parent["cost"]
-               self.add_node(chainIndex, chain[i], linkCostFrom)
+               linkCost = chain[i].linkCost
+               self.add_node(chainIndex, chain[i], linkCost)
 
      def ordonnancementForkJoin(self):
           # Itère sur chaque chaîne de l'arbre
@@ -146,7 +154,6 @@ class forkJoin:
           arbreStart = ArbreEntrant(self.start)
           arbreEnd = ArbreEntrant(self.end)
           ordonnancementStart = ordonnancementArbre(arbreStart)
-          arbreEnd.printTree()
           ordonnancementStart.reverse()
           ordonnancementEnd = ordonnancementArbre(arbreEnd)
           ordonnancementStart.extend(ordonnancementEnd)
