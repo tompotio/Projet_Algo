@@ -249,21 +249,37 @@ class SP_Parallel(SPGraph):
         self.G1 = G1
         self.G2 = G2
 
+    def getParcours(self):
+        parcours_liste = []
+
+        for node in self.source.parent:
+            current = node
+            parcours_liste.append([self.source])
+
+            while current != self.target:
+                parcours_liste[-1].append(current)
+                current = current.parent[0]
+
+            parcours_liste[-1].append(self.target)
+
+            #print("parcours ajouté : ", [node.label for node in parcours_liste[-1]])
+
+        return parcours_liste
+
     def ordonnancement(self):
         fork_join = forkJoin(self.source.weight, self.target.weight)
 
         # On récupère les ordonnancements de nos sous-graphes
-        G1_ordo = self.G1.ordonnancement()
-        G2_ordo = self.G2.ordonnancement()
+        ordonnancements = self.getParcours()
 
-        # On construit les chaînes de nos sous-graphes
-        G1_chaine = lineariser(self, G1_ordo)
-        G2_chaine = lineariser(self, G2_ordo)
+        # On construit les chaînes de nos sous-graphes et on les injecte dans le forkJoin
+        for ordo in ordonnancements:
+            chaine = lineariser(self, ordo)
+            print("chaine ajoutée : ", [node.label for node in chaine])
+            fork_join.add_chain(chaine, self.get_edge_weight(self.source, ordo[0]), chaine[0].linkCost)
 
-        # Ajoute les chaînes respectives à notre forkJoin 
-        # (On peut récupérer "cost" car on est sûr qu'après la linéarisation les noeuds de la chaîne ne sont pas des terminaisons)
-        fork_join.add_chain(G1_chaine, G1_chaine[0].parent["cost"], G1_chaine[0].linkCost)
-        fork_join.add_chain(G2_chaine, G2_chaine[0].parent["cost"], G2_chaine[0].linkCost)
+        print()
+        fork_join.print_forkJoin()
 
         # Renvoie l'ordonnancement optimal
         return fork_join.ordonnancementForkJoin()
@@ -300,11 +316,11 @@ def lineariser(graphe : SPGraph, ordonnancement : list):
         newEnfant = Node(current.weight, current.label)
         linkCostTo = 0
 
-        if i == 0: 
-            linkCostTo = registry.get_weight(source, current)
+        if i < len(ordonnancement) - 1:
+            linkCostTo = registry.get_weight(current, ordonnancement[i + 1])
         else:
-            linkCostTo = registry.get_weight(ordonnancement[i - 1], current)
-
+            linkCostTo = registry.get_weight(current, target)
+        
         if linkCostTo == None:
             linkCostTo = 0
 
@@ -313,13 +329,8 @@ def lineariser(graphe : SPGraph, ordonnancement : list):
                     edge_cost = registry.get_weight(current, parent)
                     linkCostTo += edge_cost
                     newEnfant.weight -= (linkCostTo - registry.get_weight(current, ordonnancement[i + 1]))
-        
+                        
         newEnfant.linkCost = linkCostTo
-
-        if i == len(ordonnancement) - 1:
-            newEnfant.linkCostFrom = registry.get_weight(current, target)
-        else:
-            newEnfant.linkCostFrom = registry.get_weight(current, ordonnancement[i+1])
 
         chaine.append(newEnfant)
             

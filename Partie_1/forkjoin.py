@@ -52,9 +52,6 @@ class forkJoin:
 
           while current.enfant and current.enfant[0] != self.end:
                current = current.enfant[0]
-
-          if self.end not in current.enfant:
-               print("not in ", current.label)
           
           current.enfant.remove(self.end)
 
@@ -92,7 +89,21 @@ class forkJoin:
           nodeLabel.append({"label":current.label,"linkCost":0})
  
           return nodeLabel
+     
+     def print_forkJoin(self):
+          output = "Affiche le forkJoin : \n"
 
+          for enfant in self.start.enfant:
+               current = enfant
+
+               while current != self.end:
+                    output += current.label + "(" + str(current.weight) + ")" + "-{" + str(current.linkCost) + "}->"
+                    current = current.enfant[0]
+
+               output += "\n"
+               
+          print(output)
+     
      '''
           Ajoute une chaîne complète au forkJoin.
      '''
