@@ -12,9 +12,10 @@ def Tmin(obj,l, hauteurs, largeurs):
         for j in range(i, nbObjet):  # De i à N-1
             Tmin[i] = min(Tmin[i], h(i, j, l, hauteurs, largeurs) + Tmin[j + 1])
 
+    print(f"Matrice Tmin: {Tmin}")
     return Tmin[obj-1]
 
 largeur = [1,2,1,1,2,1,3,2]
 hauteurs = [1,2,5,4,3,1,2,4]
 l = 4
-print(f"la hauteur total des carton est {Tmin(1,4,hauteurs,largeur)}")
+print(f"TMin:la hauteur total des carton est {Tmin(1,4,hauteurs,largeur)} \n")

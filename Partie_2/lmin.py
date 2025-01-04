@@ -17,8 +17,9 @@ def lmin(n,k,widths):
         for v in range(2,min(u,k) + 1):
             for j in range(1,u+1):
                 L[u][v] = min(L[u][v],max(L[j-1][v-1],l(j-1,u)))
+    print(f"Matrice Lmin : {L}")
     return L[n][k]
 
 widths = [1,2,1,1,2,1,3,2]
 
-print(f" la largeur minimal de la configuration {widths} est {lmin(len(widths),3,widths)}")
+print(f"lMin : la largeur minimal de la configuration {widths} est {lmin(len(widths),3,widths)} \n")
