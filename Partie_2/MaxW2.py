@@ -19,7 +19,7 @@ def Lns(N, largeurs):
                     premierCarton = sum(largeurs[m:m+taille])
                     largeur_max = min(largeur_max,max(premierCarton, deuxiemeCarton))
             Lns[i][j] = min(Lns[i][j],min(Lns[i-1][j], largeur_max))
-                    
+    print(f"matrice Lns avec 2 carton {Lns}")            
     return Lns
 
 
@@ -31,14 +31,14 @@ def findW(lMax,largeurs):
     for j in range(1,N+1):
         if L[N][j] <= lMax:
             w = j
-        print(f"{L[N][j]}")
+        
     print(f"la taille maximale d'un sous ensemble de largeur <= {lMax} avec un carton est {w}")
     return w 
 largeurs = [1,2,1,2,2,1,3,2]
 findW(5,largeurs)
 
 
-def Lns(N, largeurs):
+"""def Lns(N, largeurs):
     Lns = [[float('inf')] * (N+1) for _ in range(N+1)]
     for i in range(1, N+1):
         Lns[i][1] = min(largeurs[0:i])
@@ -72,3 +72,4 @@ def findW(lMax,largeurs):
 
 largeurs = [1,2,1,2,2,1,3,2] 
 findW(5,largeurs)
+"""

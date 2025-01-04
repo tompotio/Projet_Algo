@@ -91,7 +91,6 @@ add_node(self, chainIndex, node, linkCostFrom) permet d'ajouter un noeud à une 
 
 10. 
 
-11. 
 
 12. 
 
