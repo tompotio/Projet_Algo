@@ -18,7 +18,7 @@ def Lns(N, largeurs):
                 for m in range(0,i-j+k-taille+1):
                     premierCarton = sum(largeurs[m:m+taille])
                     largeur_max = min(largeur_max,max(premierCarton, deuxiemeCarton))
-            Lns[i][j] = min(Lns[i-1][j], largeur_max))
+            Lns[i][j] = min(Lns[i][j],min(Lns[i-1][j], largeur_max))
     print(f"matrice Lns avec 2 carton {Lns}")            
     return Lns
 
